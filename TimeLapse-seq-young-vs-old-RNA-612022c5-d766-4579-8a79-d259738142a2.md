@@ -23,7 +23,7 @@ An outline of my code used to analyze Timelapse-seq data
 
 ## Stats can be found here from the Timelapse-seq analysis
 
-[](https://docs.google.com/spreadsheets/d/11tny8mEw6agXvnJTfhhDyKMVorB7_Ntgmnz_3YwLaXM/edit#gid=0)
+[https://docs.google.com/spreadsheets/d/11tny8mEw6agXvnJTfhhDyKMVorB7_Ntgmnz_3YwLaXM/edit#gid=0](https://docs.google.com/spreadsheets/d/11tny8mEw6agXvnJTfhhDyKMVorB7_Ntgmnz_3YwLaXM/edit#gid=0)
 
 ## Scripts used to trim adapters and map reads
 
@@ -100,7 +100,7 @@ An outline of my code used to analyze Timelapse-seq data
       bowtie2 -p 2 --very-sensitive --quiet --un ${i}.norrna.fq -x ${rRNADIR}RefSeqrRNA -U ${i} | rrna-stats -o ${i}.stats --tam --maxread 100 --lenrange 5,100 - &
       done
 
-- **map_reads.sh**
+- **~~map_reads.sh~~**
 
       #!/bin/bash
       
@@ -140,6 +140,8 @@ An outline of my code used to analyze Timelapse-seq data
 
 - **testing_alignment_param.sh**
 
+  **Note: This is the code I proceeded**
+
   This script is used to test the `--ignore-quals` option in Hisat2, since the frequency of G>A mutations was low in some of the test samples
 
       #!/bin/bash
@@ -178,9 +180,9 @@ An outline of my code used to analyze Timelapse-seq data
       	samtools sort $i -o ${i}.sorted.bam &
       done
 
-## Finding G>A mutations for Timelapse-seq data
+## Finding `A>G` mutations for Timelapse-seq data
 
-After `map_reads.sh` I will run NTI's BAM splitting program, which counts A>G mutations. I downloaded his program from his Github in the "synth-data" directory. I'll run it using `python err-stats.py myfile.bam`
+After `map_reads.sh` I will run the BAM splitting program, which counts `A>G` mutations. I downloaded his program from his Github in the "synth-data" directory. I'll run it using `python err-stats.py myfile.bam`
 
 - `err-stats.py`
 
@@ -197,23 +199,35 @@ After `map_reads.sh` I will run NTI's BAM splitting program, which counts A>G mu
     ln -s ~/timelapse-seq/Alignment/*.sorted.bam ./
     ln -s ~/timelapse-seq/Alignment/RP/*.sorted.bam ./
     
-    # run NTIs err-stats.py program on all of my sorted BAM files 
+    # run err-stats.py program on all of my sorted BAM files 
     for i in *.sorted.bam; do
-    `python ~/timelapse-seq/[err-stats](http://err-stats.py/)[.]()[py](http://err-stats.py/) ${i} &
+    `python ~/timelapse-seq/[err-stats](http://err-stats.py/)[.[py](http://err-stats.py/) ${i} &
     done`
 
-## Split BAM file reads based on G>A using `split-tl.py`
+## Split BAM file reads based on `A>G` using `split-tl.py`
 
 It will also take a while to run. It generates three output files:
 
-1. `myfile-yestl.bam` contains all reads with TimeLapse mutations (G->A mutations on these first-strand cDNA reads).
+1. `myfile-yestl.bam` contains all reads with TimeLapse mutations (`A>G` mutations on these first-strand cDNA reads).
 2. `myfile-notl.bam` contains all reads that don't have TimeLapse mutations
 3. `myfile-tl-stats.txt` contains statistics for the different categories of reads.
 
-    # run NTIs split-tl.py
+    #!/bin/bash
+    
+    # run split-tl.py
+    SPLITDIR='/mnt/ingolialab/ingolia/Prog/ribosome-profiling/timelapse/'
+    DIR='/mnt/ingolialab/apadron/timelapse-seq/Analysis/'
+    
     cd ~/timelapse-seq/Analysis
-    for i in *.sorted.bam; do
-    python ~/timelapse-seq/split-tl.py $i &
+    
+    # for RNAseq samples I'll need to split files by A>G mutations
+    for i in RS_*.sorted.bam; do
+            python ${SPLITDIR}split-tl.py --mutation A,G ${i} &
+    done
+    
+    # for Ribosome Profiling samples I'll need to split files by T>C mutations
+    for i in *.fq.bam.sorted.bam; do
+            python ${SPLITDIR}split-tl.py --mutation T,C ${i} &
     done
 
 ## Run FeatureCounts on split BAM files and full BAM files
