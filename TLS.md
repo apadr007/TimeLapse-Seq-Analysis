@@ -193,6 +193,7 @@ After `map_reads.sh` I will run the BAM splitting program, which counts `A>G` mu
   3. `myfile-ferr.txt` will indicate how often each kind of change occurs to a certain reference base. That is, the 'AtoC' column is the fraction of reference As that are read as Cs. Like the "nalign.txt" file, these are split up according to read position.
   4. `myfile-ferr-avg.txt` is like the "ferr.txt" file, averaged over bases 6 - 45 (i.e., excluding the ends).
 
+    
     # first I'll make a soft link to all of my bam files into a new dir
     
     cd ~/timelapse-seq/Analysis
